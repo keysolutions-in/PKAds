@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://13.250.6.131:8080/api",
+      "url": "https://api.pkesari.com/api",
       "description": "Generated server url"
     }
   ],
@@ -896,6 +896,73 @@
         }
       }
     },
+    "/payment-gateway-config/{gatewayType}/webhook-secret": {
+      "put": {
+        "tags": [
+          "Payment Gateway Configuration"
+        ],
+        "summary": "Update webhook secret",
+        "description": "Updates the webhook secret for the specified gateway (Superadmin only). The secret is masked in responses.",
+        "operationId": "updateWebhookSecret",
+        "parameters": [
+          {
+            "name": "gatewayType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RAZORPAY",
+                "PAYPAL",
+                "PAYTM"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookSecretRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Webhook secret updated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/notifications/{id}/read": {
       "put": {
         "tags": [
@@ -977,7 +1044,7 @@
           "Invoices"
         ],
         "summary": "Update invoice status",
-        "description": "Updates the status of an invoice",
+        "description": "Updates the status of an invoice (Admin/Finance only). Marking as PAID will record who marked it and create a manual transaction if needed.",
         "operationId": "updateInvoiceStatus",
         "parameters": [
           {
@@ -1015,7 +1082,17 @@
             }
           },
           "200": {
-            "description": "OK",
+            "description": "Invoice status updated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
             "content": {
               "*/*": {
                 "schema": {
@@ -1666,6 +1743,56 @@
         }
       }
     },
+    "/webhooks/razorpay": {
+      "post": {
+        "tags": [
+          "webhook-controller"
+        ],
+        "operationId": "handleRazorpayWebhook",
+        "parameters": [
+          {
+            "name": "X-Razorpay-Signature",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/user/change-password": {
       "post": {
         "tags": [
@@ -2101,6 +2228,58 @@
           },
           "200": {
             "description": "Prices calculated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/verify": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Verify Razorpay payment",
+        "description": "Verifies razorpay checkout signature and finalizes transaction",
+        "operationId": "verifyPayment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signature or verification failed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentTransactionDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Payment verified and transaction finalized",
             "content": {
               "*/*": {
                 "schema": {
@@ -4017,6 +4196,63 @@
         }
       }
     },
+    "/payment-gateway-config/public/{gatewayType}": {
+      "get": {
+        "tags": [
+          "Payment Gateway Configuration"
+        ],
+        "summary": "Public: Get active configuration for a specific gateway",
+        "description": "Public endpoint returning non-secret configuration only if gateway is enabled. Secrets are not included.",
+        "operationId": "getPublicConfig",
+        "parameters": [
+          {
+            "name": "gatewayType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RAZORPAY",
+                "PAYPAL",
+                "PAYTM"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Active configuration not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Configuration retrieved",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/notifications": {
       "get": {
         "tags": [
@@ -5756,6 +5992,9 @@
           },
           "keySecret": {
             "type": "string"
+          },
+          "webhookSecret": {
+            "type": "string"
           }
         },
         "required": [
@@ -5816,6 +6055,9 @@
           "webhookUrl": {
             "type": "string"
           },
+          "webhookSecret": {
+            "type": "string"
+          },
           "updatedBy": {
             "type": "integer",
             "format": "int64"
@@ -5823,6 +6065,40 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "WebhookSecretRequest": {
+        "type": "object",
+        "properties": {
+          "webhookSecret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "webhookSecret"
+        ]
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaData"
+          },
+          "timestamp": {
+            "type": "string"
           }
         }
       },
@@ -5982,6 +6258,17 @@
           },
           "transactionId": {
             "type": "string"
+          },
+          "paidBy": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "paidByName": {
+            "type": "string"
+          },
+          "updatedBy": {
+            "type": "integer",
+            "format": "int64"
           },
           "createdAt": {
             "type": "string",
@@ -6531,29 +6818,6 @@
           "password"
         ]
       },
-      "ApiResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ApiError"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/MetaData"
-          },
-          "timestamp": {
-            "type": "string"
-          }
-        }
-      },
       "CreateSubscriptionRequest": {
         "type": "object",
         "properties": {
@@ -6603,7 +6867,8 @@
               "CARD",
               "UPI",
               "NET_BANKING",
-              "WALLET"
+              "WALLET",
+              "MANUAL"
             ]
           },
           "paymentMethodId": {
@@ -6680,7 +6945,8 @@
               "CARD",
               "UPI",
               "NET_BANKING",
-              "WALLET"
+              "WALLET",
+              "MANUAL"
             ]
           },
           "paymentMethodDisplay": {
@@ -6693,6 +6959,12 @@
               "PAYPAL",
               "PAYTM"
             ]
+          },
+          "gatewayOrderId": {
+            "type": "string"
+          },
+          "gatewayPaymentId": {
+            "type": "string"
           },
           "status": {
             "type": "string",
@@ -7272,6 +7544,48 @@
           }
         }
       },
+      "PaymentVerifyRequest": {
+        "type": "object",
+        "properties": {
+          "razorpayPaymentId": {
+            "type": "string"
+          },
+          "razorpayOrderId": {
+            "type": "string"
+          },
+          "razorpaySignature": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "razorpayOrderId",
+          "razorpayPaymentId",
+          "razorpaySignature"
+        ]
+      },
+      "ApiResponsePaymentTransactionDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaymentTransactionDto"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaData"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
       "AddUpiRequest": {
         "type": "object",
         "properties": {
@@ -7326,7 +7640,8 @@
               "CARD",
               "UPI",
               "NET_BANKING",
-              "WALLET"
+              "WALLET",
+              "MANUAL"
             ]
           },
           "displayName": {
@@ -7388,8 +7703,7 @@
             "type": "string"
           },
           "publishAt": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
           },
           "targetCityId": {
             "type": "integer",
@@ -7433,6 +7747,10 @@
               "PUBLISHED",
               "REJECTED"
             ]
+          },
+          "publishAtInstant": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
@@ -7739,6 +8057,12 @@
             "type": "integer",
             "format": "int32"
           },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
           "pageable": {
             "$ref": "#/components/schemas/PageableObject"
           },
@@ -7758,12 +8082,6 @@
           },
           "sort": {
             "$ref": "#/components/schemas/SortObject"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
           },
           "numberOfElements": {
             "type": "integer",
@@ -8775,6 +9093,9 @@
             "format": "int32"
           },
           "CategoryName": {
+            "type": "string"
+          },
+          "CatType": {
             "type": "string"
           },
           "Children": {
