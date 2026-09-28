@@ -941,22 +941,22 @@
               }
             }
           },
-          "400": {
-            "description": "Validation failed",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Webhook secret updated",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
                 }
               }
             }
@@ -2956,22 +2956,22 @@
               }
             }
           },
-          "201": {
-            "description": "Inquiry submitted successfully",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Validation failed",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseContactDto"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Inquiry submitted successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -3090,22 +3090,22 @@
               }
             }
           },
-          "201": {
-            "description": "Registered and logged in successfully",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Validation failed or account already exists",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseJwtResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Registered and logged in successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -3697,22 +3697,22 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid paging or sorting parameter",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePageUserDto"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Successfully retrieved users",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid paging or sorting parameter",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageUserDto"
                 }
               }
             }
@@ -4238,6 +4238,49 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/payments/hdfc/return": {
+      "get": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Return from HDFC SmartGateway",
+        "description": "Confirms the HDFC order server-to-server, then redirects to the frontend payment return page with order_id and status. The frontend should call POST /payments/hdfc/verify with orderId to display the authenticated transaction.",
+        "operationId": "hdfcPaymentReturn",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK"
           }
         }
       }
