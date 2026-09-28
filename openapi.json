@@ -46,10 +46,6 @@
       "description": "APIs for managing cities and pricing"
     },
     {
-      "name": "Payment Gateway Configuration",
-      "description": "Superadmin APIs for configuring payment gateways (Razorpay, PayPal, Paytm)"
-    },
-    {
       "name": "Digital Property Management",
       "description": "APIs for managing digital properties"
     },
@@ -92,6 +88,10 @@
     {
       "name": "Region Management",
       "description": "APIs for managing regions"
+    },
+    {
+      "name": "Payment Gateway Configuration",
+      "description": "Superadmin APIs for configuring payment gateways (Razorpay, PayPal, Paytm, HDFC SmartGateway)"
     }
   ],
   "paths": {
@@ -914,7 +914,8 @@
               "enum": [
                 "RAZORPAY",
                 "PAYPAL",
-                "PAYTM"
+                "PAYTM",
+                "HDFC"
               ]
             }
           }
@@ -940,22 +941,22 @@
               }
             }
           },
-          "200": {
-            "description": "Webhook secret updated",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Validation failed",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Webhook secret updated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -1793,6 +1794,56 @@
         }
       }
     },
+    "/webhooks/hdfc": {
+      "post": {
+        "tags": [
+          "webhook-controller"
+        ],
+        "operationId": "handleHdfcWebhook",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/user/change-password": {
       "post": {
         "tags": [
@@ -1965,7 +2016,7 @@
           "Subscriptions"
         ],
         "summary": "Create subscription",
-        "description": "Creates a subscription, invoice and payment transaction using test-mode payment simulation",
+        "description": "Creates a subscription, invoice and payment transaction; HDFC returns a hosted checkout URL",
         "operationId": "createSubscription",
         "requestBody": {
           "content": {
@@ -2268,22 +2319,22 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid signature or verification failed",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePaymentTransactionDto"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Payment verified and transaction finalized",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signature or verification failed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentTransactionDto"
                 }
               }
             }
@@ -2368,6 +2419,48 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseSavedPaymentMethodDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/hdfc/verify": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Verify HDFC SmartGateway payment",
+        "description": "Fetches the final HDFC order status server-to-server and verifies order ID and amount",
+        "operationId": "verifyHdfcPayment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HdfcOrderVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentTransactionDto"
                 }
               }
             }
@@ -2997,22 +3090,22 @@
               }
             }
           },
-          "400": {
-            "description": "Validation failed or account already exists",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseJwtResponse"
-                }
-              }
-            }
-          },
           "201": {
             "description": "Registered and logged in successfully",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or account already exists",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseJwtResponse"
                 }
               }
             }
@@ -4167,7 +4260,8 @@
               "enum": [
                 "RAZORPAY",
                 "PAYPAL",
-                "PAYTM"
+                "PAYTM",
+                "HDFC"
               ]
             }
           }
@@ -4214,7 +4308,8 @@
               "enum": [
                 "RAZORPAY",
                 "PAYPAL",
-                "PAYTM"
+                "PAYTM",
+                "HDFC"
               ]
             }
           }
@@ -5977,7 +6072,8 @@
             "enum": [
               "RAZORPAY",
               "PAYPAL",
-              "PAYTM"
+              "PAYTM",
+              "HDFC"
             ]
           },
           "enabled": {
@@ -5994,6 +6090,12 @@
             "type": "string"
           },
           "webhookSecret": {
+            "type": "string"
+          },
+          "resellerId": {
+            "type": "string"
+          },
+          "returnUrl": {
             "type": "string"
           }
         },
@@ -6037,7 +6139,8 @@
             "enum": [
               "RAZORPAY",
               "PAYPAL",
-              "PAYTM"
+              "PAYTM",
+              "HDFC"
             ]
           },
           "enabled": {
@@ -6056,6 +6159,12 @@
             "type": "string"
           },
           "webhookSecret": {
+            "type": "string"
+          },
+          "resellerId": {
+            "type": "string"
+          },
+          "returnUrl": {
             "type": "string"
           },
           "updatedBy": {
@@ -6957,7 +7066,8 @@
             "enum": [
               "RAZORPAY",
               "PAYPAL",
-              "PAYTM"
+              "PAYTM",
+              "HDFC"
             ]
           },
           "gatewayOrderId": {
@@ -7122,6 +7232,9 @@
             "$ref": "#/components/schemas/PaymentTransactionDto"
           },
           "clientAdId": {
+            "type": "string"
+          },
+          "checkoutUrl": {
             "type": "string"
           }
         }
@@ -7685,6 +7798,17 @@
           "cardNumber",
           "cardType",
           "expiryDate"
+        ]
+      },
+      "HdfcOrderVerifyRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "orderId"
         ]
       },
       "ReviewContentRequest": {
