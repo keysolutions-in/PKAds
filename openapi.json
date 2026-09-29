@@ -1,13 +1,13 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Loan Management API",
-    "description": "API documentation for Loan Management application",
+    "title": "Subscriptions API",
+    "description": "Subscription, payment, plan-change, and entitlement APIs",
     "version": "1.0"
   },
   "servers": [
     {
-      "url": "https://api.pkesari.com/api",
+      "url": "http://13.250.6.131:8080/api",
       "description": "Generated server url"
     }
   ],
@@ -777,8 +777,8 @@
         "tags": [
           "Payments"
         ],
-        "summary": "Toggle autopay",
-        "description": "Enables or disables autopay on all saved payment methods",
+        "summary": "Toggle saved-method renewal preference",
+        "description": "Stores a preference only; this endpoint does not authorize or initiate recurring debit. HDFC mandate authorization is created through subscription checkout with autoRenew=true and can be revoked with DELETE /subscriptions/{id}/mandate.",
         "operationId": "toggleAutopay",
         "requestBody": {
           "content": {
@@ -2062,13 +2062,160 @@
         }
       }
     },
+    "/subscriptions/{id}/upgrade": {
+      "post": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Upgrade subscription",
+        "description": "Creates a full-price target-plan payment checkout. The current plan remains current until payment is verified successfully; successful activation supersedes the old subscription and cancels any scheduled downgrade.",
+        "operationId": "upgradeSubscription",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanChangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseThankYouResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/{id}/schedule-downgrade": {
+      "post": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Schedule downgrade",
+        "description": "Schedules one lower plan to take effect the day after the current paid period ends. No payment or activation occurs now. Cancel an existing schedule before creating a different one.",
+        "operationId": "scheduleDowngrade",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanChangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSubscriptionDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Cancel scheduled downgrade",
+        "description": "Removes the scheduled downgrade before its effective date; the current plan and renewal preference are unchanged.",
+        "operationId": "cancelScheduledDowngrade",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSubscriptionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/subscriptions/renew": {
       "post": {
         "tags": [
           "Subscriptions"
         ],
         "summary": "Renew subscription",
-        "description": "Renews an expired subscription using a saved payment method",
+        "description": "Creates a customer-completed renewal checkout for an expired subscription or a due scheduled downgrade. Active HDFC mandate renewals are processed by the backend; final activation waits for server-verified payment success.",
         "operationId": "renewSubscription",
         "requestBody": {
           "content": {
@@ -2296,7 +2443,7 @@
           "Payments"
         ],
         "summary": "Verify Razorpay payment",
-        "description": "Verifies razorpay checkout signature and finalizes transaction",
+        "description": "Verifies the checkout signature, then confirms captured status, order ID, INR currency, and amount server-to-server before finalizing the transaction and activating the subscription.",
         "operationId": "verifyPayment",
         "requestBody": {
           "content": {
@@ -2319,22 +2466,22 @@
               }
             }
           },
-          "200": {
-            "description": "Payment verified and transaction finalized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Invalid signature or verification failed",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponsePaymentTransactionDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Payment verified and transaction finalized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -2956,22 +3103,22 @@
               }
             }
           },
-          "400": {
-            "description": "Validation failed",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseContactDto"
-                }
-              }
-            }
-          },
           "201": {
             "description": "Inquiry submitted successfully",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseContactDto"
                 }
               }
             }
@@ -3697,22 +3844,22 @@
               }
             }
           },
-          "200": {
-            "description": "Successfully retrieved users",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Invalid paging or sorting parameter",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponsePageUserDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully retrieved users",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -3890,6 +4037,90 @@
         }
       }
     },
+    "/subscriptions/{id}/mandate": {
+      "get": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Get HDFC mandate status",
+        "description": "Returns the authenticated client's HDFC mandate reference and registration status for this subscription. Mandate tokens are never returned.",
+        "operationId": "getHdfcMandate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseHdfcMandateDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Revoke HDFC mandate",
+        "description": "Stops pending mandate execution where possible, then asks HDFC to revoke the customer's active mandate. The subscription remains active through its paid period, but automatic renewal is disabled. The mandate reference and status are returned; no mandate token is exposed.",
+        "operationId": "revokeHdfcMandate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseHdfcMandateDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/subscriptions/my": {
       "get": {
         "tags": [
@@ -3915,6 +4146,38 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseListSubscriptionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/me/entitlements": {
+      "get": {
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Get my benefit entitlements",
+        "description": "Returns current and carried-over benefit grants for the authenticated client, ordered by expiry. Grant balances are authoritative and cannot be selected by the client during content submission.",
+        "operationId": "getMyEntitlements",
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListEntitlementGrantDto"
                 }
               }
             }
@@ -6030,6 +6293,11 @@
           "priceMultiplier": {
             "type": "number"
           },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Authoritative plan rank used by the backend to classify upgrades and downgrades."
+          },
           "articles": {
             "type": "integer",
             "format": "int32"
@@ -6615,6 +6883,10 @@
             "type": "integer",
             "format": "int64"
           },
+          "entitlementGrantId": {
+            "type": "integer",
+            "format": "int64"
+          },
           "contentType": {
             "type": "string",
             "enum": [
@@ -7028,10 +7300,8 @@
             "format": "int64"
           },
           "autoRenew": {
-            "type": "boolean"
-          },
-          "testOutcome": {
-            "type": "string"
+            "type": "boolean",
+            "description": "When true with HDFC selected, checkout requires mandate consent and records the mandate only after server-verified registration success. This is not a frontend-controlled debit."
           }
         },
         "required": [
@@ -7114,6 +7384,9 @@
             ]
           },
           "gatewayOrderId": {
+            "type": "string"
+          },
+          "gatewayCheckoutUrl": {
             "type": "string"
           },
           "gatewayPaymentId": {
@@ -7225,18 +7498,97 @@
               "ACTIVE",
               "EXPIRED",
               "CANCELLED",
-              "PENDING"
+              "PENDING",
+              "SUPERSEDED",
+              "PAYMENT_DUE",
+              "PAYMENT_FAILED"
             ]
           },
           "startDate": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "description": "Authoritative validity start date; null while checkout is pending."
           },
           "endDate": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "description": "Authoritative validity end date; null while checkout is pending."
+          },
+          "nextRenewalDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Next calendar renewal date, when applicable."
           },
           "autoRenew": {
+            "type": "boolean",
+            "description": "Renewal preference; only an ACTIVE HDFC mandate authorizes scheduled server-side debits."
+          },
+          "renewalPaymentMode": {
+            "type": "string",
+            "description": "CUSTOMER_PAYMENT_REQUIRED unless an active HDFC mandate is attached; HDFC_MANDATE then denotes scheduled server-side debit, not guaranteed payment success."
+          },
+          "current": {
+            "type": "boolean",
+            "description": "True only for the customer's current active subscription."
+          },
+          "supersedesSubscriptionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "supersededBySubscriptionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "changeType": {
+            "type": "string",
+            "enum": [
+              "UPGRADE",
+              "DOWNGRADE"
+            ]
+          },
+          "pendingPlanId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pendingPlanName": {
+            "type": "string",
+            "description": "Name of a scheduled lower plan."
+          },
+          "pendingChangeType": {
+            "type": "string",
+            "enum": [
+              "UPGRADE",
+              "DOWNGRADE"
+            ]
+          },
+          "pendingRequestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pendingEffectiveDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "pendingBillingCycle": {
+            "type": "string",
+            "enum": [
+              "MONTHLY",
+              "QUARTERLY",
+              "YEARLY"
+            ]
+          },
+          "pendingChangeStatus": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED",
+              "PAYMENT_DUE",
+              "PAYMENT_PENDING",
+              "PAYMENT_FAILED",
+              "SUCCEEDED",
+              "CANCELLED"
+            ]
+          },
+          "pendingAutoRenew": {
             "type": "boolean"
           },
           "paymentMethodId": {
@@ -7282,6 +7634,68 @@
           }
         }
       },
+      "PlanChangeRequest": {
+        "type": "object",
+        "properties": {
+          "targetPlanId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Target plan ID; price and plan rank are resolved by the backend."
+          },
+          "targetBillingCycle": {
+            "type": "string",
+            "description": "Target billing cycle, priced and validated by the backend.",
+            "enum": [
+              "MONTHLY",
+              "QUARTERLY",
+              "YEARLY"
+            ]
+          },
+          "paymentMethodId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Optional saved payment method owned by the authenticated client."
+          },
+          "paymentMethodType": {
+            "type": "string",
+            "description": "Payment method selection used to create the customer checkout; not a recurring mandate.",
+            "enum": [
+              "CARD",
+              "UPI",
+              "NET_BANKING",
+              "WALLET",
+              "MANUAL"
+            ]
+          }
+        },
+        "required": [
+          "targetBillingCycle",
+          "targetPlanId"
+        ]
+      },
+      "ApiResponseSubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SubscriptionDto"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaData"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
       "RenewSubscriptionRequest": {
         "type": "object",
         "properties": {
@@ -7292,9 +7706,6 @@
           "paymentMethodId": {
             "type": "integer",
             "format": "int64"
-          },
-          "testOutcome": {
-            "type": "string"
           }
         },
         "required": [
@@ -8436,7 +8847,7 @@
           }
         }
       },
-      "ApiResponseSubscriptionDto": {
+      "ApiResponseHdfcMandateDto": {
         "type": "object",
         "properties": {
           "success": {
@@ -8446,7 +8857,7 @@
             "type": "string"
           },
           "data": {
-            "$ref": "#/components/schemas/SubscriptionDto"
+            "$ref": "#/components/schemas/HdfcMandateDto"
           },
           "error": {
             "$ref": "#/components/schemas/ApiError"
@@ -8456,6 +8867,92 @@
           },
           "timestamp": {
             "type": "string"
+          }
+        }
+      },
+      "HdfcMandateDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "subscriptionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "registrationOrderId": {
+            "type": "string"
+          },
+          "mandateId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REGISTERING",
+              "CREATED",
+              "ACTIVE",
+              "FAILURE",
+              "REVOKE",
+              "REVOKED",
+              "PAUSED",
+              "EXPIRED",
+              "PAYMENT_DUE",
+              "REVOKE_PENDING"
+            ]
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "MONTHLY",
+              "QUARTERLY",
+              "YEARLY"
+            ]
+          },
+          "maxAmount": {
+            "type": "number"
+          },
+          "paymentMode": {
+            "type": "string"
+          },
+          "mandateTokenStored": {
+            "type": "boolean",
+            "description": "Mandate token is intentionally not exposed to clients."
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validUntil": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextExecutionAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastExecutionAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastExecutionStatus": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED",
+              "PAYMENT_DUE",
+              "PAYMENT_PENDING",
+              "PAYMENT_FAILED",
+              "SUCCEEDED",
+              "CANCELLED"
+            ]
+          },
+          "lastNotificationStatus": {
+            "type": "string"
+          },
+          "notificationRetryCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -8482,6 +8979,95 @@
           },
           "timestamp": {
             "type": "string"
+          }
+        }
+      },
+      "ApiResponseListEntitlementGrantDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntitlementGrantDto"
+            }
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaData"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
+      "EntitlementGrantDto": {
+        "type": "object",
+        "properties": {
+          "grantId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "subscriptionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sourcePlanId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sourcePlanName": {
+            "type": "string"
+          },
+          "benefitType": {
+            "type": "string",
+            "enum": [
+              "ARTICLE",
+              "VIDEO",
+              "SOCIAL_MEDIA",
+              "ADVERT",
+              "BANNER_AD"
+            ]
+          },
+          "allocatedQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "consumedQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remainingQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string",
+            "description": "ACTIVE, DEPLETED, or EXPIRED as of the response date.",
+            "enum": [
+              "ACTIVE",
+              "DEPLETED",
+              "EXPIRED"
+            ]
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "carriedOver": {
+            "type": "boolean",
+            "description": "True when this unexpired grant belongs to a prior, non-current subscription."
           }
         }
       },
