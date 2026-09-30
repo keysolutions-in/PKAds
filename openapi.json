@@ -2615,6 +2615,103 @@
         }
       }
     },
+    "/payments/hdfc/return": {
+      "get": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Return from HDFC SmartGateway",
+        "description": "Public browser return endpoint. Uses only order_id/orderId to trigger authoritative server-to-server reconciliation, then redirects to the frontend GET route. The frontend must call POST /payments/hdfc/verify; a browser return or gateway-posted status is not proof of payment.",
+        "operationId": "hdfcPaymentReturn",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "303": {
+            "description": "See Other: browser redirected to the frontend return page using GET"
+          },
+          "400": {
+            "description": "Missing, conflicting, or invalid order ID"
+          }
+        },
+        "security": []
+      },
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "POST return from HDFC SmartGateway",
+        "description": "Public gateway callback. Accepts application/x-www-form-urlencoded, multipart/form-data, or application/json. Only order_id/orderId identifies the local transaction; all posted status and amount fields are ignored. Reconciles with HDFC server-to-server and responds with 303 See Other to the frontend GET route.",
+        "operationId": "hdfcPaymentReturnPost",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/HdfcReturnRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/HdfcReturnRequest"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HdfcReturnRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "303": {
+            "description": "See Other: browser redirected to the frontend return page using GET"
+          },
+          "415": {
+            "description": "Unsupported POST content type"
+          },
+          "400": {
+            "description": "Missing, conflicting, or invalid order ID"
+          }
+        },
+        "security": []
+      }
+    },
     "/industry": {
       "get": {
         "tags": [
@@ -3971,22 +4068,22 @@
               }
             }
           },
-          "200": {
-            "description": "Authenticated user retrieved successfully",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "401": {
             "description": "Unauthorized - Invalid or missing JWT token",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseUserDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Authenticated user retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -4501,49 +4598,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/payments/hdfc/return": {
-      "get": {
-        "tags": [
-          "Payments"
-        ],
-        "summary": "Return from HDFC SmartGateway",
-        "description": "Confirms the HDFC order server-to-server, then redirects to the frontend payment return page with order_id and status. The frontend should call POST /payments/hdfc/verify with orderId to display the authenticated transaction.",
-        "operationId": "hdfcPaymentReturn",
-        "parameters": [
-          {
-            "name": "order_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orderId",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorMessage"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "OK"
           }
         }
       }
@@ -8264,6 +8318,22 @@
         "required": [
           "orderId"
         ]
+      },
+      "HdfcReturnRequest": {
+        "type": "object",
+        "description": "HDFC browser return payload. Gateway status and amount fields are not trusted.",
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "description": "HDFC transaction order reference",
+            "example": "HDFCORDER123"
+          },
+          "orderId": {
+            "type": "string",
+            "description": "Alternate camel-case order reference",
+            "example": "HDFCORDER123"
+          }
+        }
       },
       "ReviewContentRequest": {
         "type": "object",
