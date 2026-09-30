@@ -941,22 +941,22 @@
               }
             }
           },
-          "200": {
-            "description": "Webhook secret updated",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Validation failed",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Webhook secret updated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -2621,7 +2621,7 @@
           "Payments"
         ],
         "summary": "Return from HDFC SmartGateway",
-        "description": "Public browser return endpoint. Uses only order_id/orderId to trigger authoritative server-to-server reconciliation, then redirects to the frontend GET route. The frontend must call POST /payments/hdfc/verify; a browser return or gateway-posted status is not proof of payment.",
+        "description": "Public browser return endpoint. CORS is limited to the configured HDFC SmartGateway UAT and production origins. Uses only order_id/orderId to trigger authoritative server-to-server reconciliation, then redirects to the frontend GET route. The frontend must call POST /payments/hdfc/verify; a browser return or gateway-posted status is not proof of payment.",
         "operationId": "hdfcPaymentReturn",
         "parameters": [
           {
@@ -2666,7 +2666,7 @@
           "Payments"
         ],
         "summary": "POST return from HDFC SmartGateway",
-        "description": "Public gateway callback. Accepts application/x-www-form-urlencoded, multipart/form-data, or application/json. Only order_id/orderId identifies the local transaction; all posted status and amount fields are ignored. Reconciles with HDFC server-to-server and responds with 303 See Other to the frontend GET route.",
+        "description": "Public gateway callback. Accepts application/x-www-form-urlencoded, multipart/form-data, or application/json without authentication or a CSRF token. Only order_id/orderId identifies the local transaction; posted status, status_id, signature, signature_algorithm, and amount fields are ignored. Reconciles with HDFC server-to-server and responds with 303 See Other to the frontend GET route including order_id.",
         "operationId": "hdfcPaymentReturnPost",
         "requestBody": {
           "content": {
@@ -8332,6 +8332,24 @@
             "type": "string",
             "description": "Alternate camel-case order reference",
             "example": "HDFCORDER123"
+          },
+          "status": {
+            "type": "string",
+            "description": "Ignored; final payment status is queried from HDFC",
+            "example": "CHARGED"
+          },
+          "status_id": {
+            "type": "string",
+            "description": "Ignored; final payment status is queried from HDFC"
+          },
+          "signature": {
+            "type": "string",
+            "description": "Ignored; payment is verified server-to-server"
+          },
+          "signature_algorithm": {
+            "type": "string",
+            "description": "Ignored; payment is verified server-to-server",
+            "example": "HMAC-SHA256"
           }
         }
       },
