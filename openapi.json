@@ -941,22 +941,22 @@
               }
             }
           },
-          "200": {
-            "description": "Webhook secret updated",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Validation failed",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Webhook secret updated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -2712,6 +2712,48 @@
         "security": []
       }
     },
+    "/payments/hdfc/abandon": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Abandon an unpaid HDFC checkout",
+        "description": "Releases the user's pending checkout only when HDFC authoritatively reports the order as NEW with no payment reference. The local transaction is marked EXPIRED, not CANCELLED, and remains eligible for late payment reconciliation.",
+        "operationId": "abandonHdfcCheckout",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HdfcOrderVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentTransactionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/industry": {
       "get": {
         "tags": [
@@ -4068,22 +4110,22 @@
               }
             }
           },
-          "200": {
-            "description": "Authenticated user retrieved successfully",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "401": {
             "description": "Unauthorized - Invalid or missing JWT token",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseUserDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Authenticated user retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -7588,7 +7630,8 @@
               "SUCCESS",
               "FAILED",
               "PENDING",
-              "CANCELLED"
+              "CANCELLED",
+              "EXPIRED"
             ]
           },
           "failureReason": {
@@ -9123,6 +9166,8 @@
               "REVOKED",
               "PAUSED",
               "EXPIRED",
+              "CANCELLED",
+              "ABANDONED",
               "PAYMENT_DUE",
               "REVOKE_PENDING"
             ]
