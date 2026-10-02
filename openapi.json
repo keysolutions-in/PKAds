@@ -941,22 +941,22 @@
               }
             }
           },
-          "400": {
-            "description": "Validation failed",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Webhook secret updated",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
                 }
               }
             }
@@ -4068,22 +4068,22 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized - Invalid or missing JWT token",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseUserDto"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Authenticated user retrieved successfully",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing JWT token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserDto"
                 }
               }
             }
@@ -5150,6 +5150,49 @@
         }
       }
     },
+    "/content-delivery/public": {
+      "get": {
+        "tags": [
+          "Content Delivery"
+        ],
+        "summary": "Get published content for a digital property",
+        "description": "Returns only published submissions assigned to the requested digital property",
+        "operationId": "getPublicContent",
+        "parameters": [
+          {
+            "name": "digitalPropertyId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListPublicContentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/content-delivery/public/types": {
       "get": {
         "tags": [
@@ -5468,6 +5511,48 @@
         }
       }
     },
+    "/contacts/my-support-requests": {
+      "get": {
+        "tags": [
+          "Contact Management"
+        ],
+        "summary": "Get my support requests",
+        "description": "Alias endpoint for the client support history flow",
+        "operationId": "getMySupportRequests",
+        "parameters": [
+          {
+            "name": "emailAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Support requests retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListContactDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/contacts/industry/{industryId}": {
       "get": {
         "tags": [
@@ -5500,6 +5585,48 @@
           },
           "200": {
             "description": "Contacts retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListContactDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/history": {
+      "get": {
+        "tags": [
+          "Contact Management"
+        ],
+        "summary": "Get support requests by email",
+        "description": "Returns all support requests submitted by the given email address",
+        "operationId": "getSupportRequestsByEmail",
+        "parameters": [
+          {
+            "name": "emailAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Support requests retrieved successfully",
             "content": {
               "*/*": {
                 "schema": {
@@ -6888,6 +7015,7 @@
             "enum": [
               "DRAFT",
               "IN_REVIEW",
+              "SCHEDULED",
               "PUBLISHED",
               "REJECTED"
             ]
@@ -6974,6 +7102,13 @@
           "targetCityName": {
             "type": "string"
           },
+          "digitalPropertyId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "digitalPropertyName": {
+            "type": "string"
+          },
           "tags": {
             "type": "string"
           },
@@ -6992,6 +7127,7 @@
             "enum": [
               "DRAFT",
               "IN_REVIEW",
+              "SCHEDULED",
               "PUBLISHED",
               "REJECTED"
             ]
@@ -8410,6 +8546,7 @@
             "enum": [
               "DRAFT",
               "IN_REVIEW",
+              "SCHEDULED",
               "PUBLISHED",
               "REJECTED"
             ]
@@ -9104,6 +9241,10 @@
             "format": "int64"
           },
           "subscriptionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "digitalPropertyId": {
             "type": "integer",
             "format": "int64"
           },
@@ -9874,6 +10015,96 @@
           },
           "timestamp": {
             "type": "string"
+          }
+        }
+      },
+      "ApiResponseListPublicContentDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicContentDto"
+            }
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaData"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
+      "PublicContentDto": {
+        "type": "object",
+        "properties": {
+          "contentId": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "ARTICLE",
+              "VIDEO",
+              "SOCIAL_MEDIA",
+              "ADVERT",
+              "BANNER_AD"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "targetRegionName": {
+            "type": "string"
+          },
+          "targetCityName": {
+            "type": "string"
+          },
+          "digitalPropertyId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "digitalPropertyName": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "engTitle": {
+            "type": "string"
+          },
+          "videoType": {
+            "type": "string"
+          },
+          "videoUrl": {
+            "type": "string"
+          },
+          "readingTime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "synopsis": {
+            "type": "string"
+          },
+          "publishAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
