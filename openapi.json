@@ -941,22 +941,22 @@
               }
             }
           },
-          "400": {
-            "description": "Validation failed",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Webhook secret updated",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentGatewayConfigDto"
                 }
               }
             }
@@ -1066,7 +1066,8 @@
               "enum": [
                 "PAID",
                 "PENDING",
-                "OVERDUE"
+                "OVERDUE",
+                "CANCELLED"
               ]
             }
           }
@@ -1987,22 +1988,22 @@
               }
             }
           },
-          "200": {
-            "description": "User created",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Validation failed",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "User created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -2414,22 +2415,22 @@
               }
             }
           },
-          "400": {
-            "description": "Validation failed or region/industry not found",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePricingCalculatorResponse"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Prices calculated successfully",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or region/industry not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePricingCalculatorResponse"
                 }
               }
             }
@@ -2573,13 +2574,55 @@
         }
       }
     },
+    "/payments/hdfc/void": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Void an authorized HDFC card payment",
+        "description": "Voids the authorization and releases the held amount. The authenticated customer can void only their own HDFC card transaction; status is confirmed server-to-server.",
+        "operationId": "voidHdfcPayment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HdfcOrderVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentTransactionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/payments/hdfc/verify": {
       "post": {
         "tags": [
           "Payments"
         ],
         "summary": "Verify HDFC SmartGateway payment",
-        "description": "Fetches the final HDFC order status server-to-server and verifies order ID and amount",
+        "description": "Fetches HDFC order status server-to-server and verifies order ID and amount. AUTHORIZED represents a hold only; capture is required before payment completion and subscription activation.",
         "operationId": "verifyHdfcPayment",
         "requestBody": {
           "content": {
@@ -2712,13 +2755,55 @@
         "security": []
       }
     },
+    "/payments/hdfc/capture": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Capture an authorized HDFC card payment",
+        "description": "Captures the full authorized amount only. The authenticated customer can capture only their own HDFC card transaction; status is confirmed server-to-server.",
+        "operationId": "captureHdfcPayment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HdfcOrderVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentTransactionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/payments/hdfc/abandon": {
       "post": {
         "tags": [
           "Payments"
         ],
         "summary": "Abandon an unpaid HDFC checkout",
-        "description": "Releases the user's pending checkout only when HDFC authoritatively reports the order as NEW with no payment reference. The local transaction is marked EXPIRED, not CANCELLED, and remains eligible for late payment reconciliation.",
+        "description": "Releases the user's pending checkout only when HDFC authoritatively reports the order as NEW with no payment reference. The local transaction is marked ABANDONED, not CANCELLED, and remains eligible for late payment reconciliation.",
         "operationId": "abandonHdfcCheckout",
         "requestBody": {
           "content": {
@@ -3376,22 +3461,22 @@
               }
             }
           },
-          "400": {
-            "description": "Validation failed or account already exists",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseJwtResponse"
-                }
-              }
-            }
-          },
           "201": {
             "description": "Registered and logged in successfully",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or account already exists",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseJwtResponse"
                 }
               }
             }
@@ -6884,7 +6969,8 @@
             "enum": [
               "PAID",
               "PENDING",
-              "OVERDUE"
+              "OVERDUE",
+              "CANCELLED"
             ]
           },
           "invoiceDate": {
@@ -7305,6 +7391,10 @@
           },
           "isResolved": {
             "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -7631,7 +7721,14 @@
               "FAILED",
               "PENDING",
               "CANCELLED",
-              "EXPIRED"
+              "EXPIRED",
+              "ABANDONED",
+              "AUTHORIZED",
+              "CAPTURE_INITIATED",
+              "CAPTURE_FAILED",
+              "VOID_INITIATED",
+              "VOID_FAILED",
+              "VOIDED"
             ]
           },
           "failureReason": {
@@ -8491,7 +8588,8 @@
         "type": "object",
         "properties": {
           "orderId": {
-            "type": "string"
+            "type": "string",
+            "pattern": "[A-Za-z0-9]{1,20}"
           }
         },
         "required": [
