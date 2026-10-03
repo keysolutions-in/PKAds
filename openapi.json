@@ -1083,22 +1083,22 @@
               }
             }
           },
-          "200": {
-            "description": "Invoice status updated",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Validation failed",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseInvoiceDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Invoice status updated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -1988,22 +1988,22 @@
               }
             }
           },
-          "400": {
-            "description": "Validation failed",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          },
           "200": {
             "description": "User created",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
                 }
               }
             }
@@ -2467,22 +2467,22 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid signature or verification failed",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePaymentTransactionDto"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Payment verified and transaction finalized",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signature or verification failed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaymentTransactionDto"
                 }
               }
             }
@@ -3271,9 +3271,20 @@
         "tags": [
           "Content Delivery"
         ],
-        "summary": "Sync categories from Punjab Kesari",
-        "description": "Manually trigger category sync from external API (Admin only)",
+        "summary": "Sync publisher categories",
+        "description": "Sync categories from the selected publisher API (Admin only)",
         "operationId": "syncCategories",
+        "parameters": [
+          {
+            "name": "digitalPropertyId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -3461,22 +3472,22 @@
               }
             }
           },
-          "201": {
-            "description": "Registered and logged in successfully",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Validation failed or account already exists",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseJwtResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Registered and logged in successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -3555,22 +3566,22 @@
               }
             }
           },
-          "200": {
-            "description": "Authenticated successfully",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "401": {
             "description": "Invalid credentials",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseJwtResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Authenticated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -4068,22 +4079,22 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid paging or sorting parameter",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponsePageUserDto"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Successfully retrieved users",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid paging or sorting parameter",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageUserDto"
                 }
               }
             }
@@ -4121,22 +4132,22 @@
               }
             }
           },
-          "200": {
-            "description": "User details retrieved",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          },
           "404": {
             "description": "User not found",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseUserDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "User details retrieved",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
                 }
               }
             }
@@ -4479,8 +4490,19 @@
           "Region Management"
         ],
         "summary": "Get visible regions",
-        "description": "Returns all visible regions for public use",
+        "description": "Returns visible regions, optionally filtered by digital property",
         "operationId": "getVisibleRegions",
+        "parameters": [
+          {
+            "name": "digitalPropertyId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -4607,8 +4629,19 @@
           "Plan Management"
         ],
         "summary": "Get visible plans",
-        "description": "Returns all visible plans for public/website use",
+        "description": "Returns visible plans, optionally filtered by digital property",
         "operationId": "getVisiblePlans",
+        "parameters": [
+          {
+            "name": "digitalPropertyId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -5235,13 +5268,110 @@
         }
       }
     },
+    "/content-delivery/{id}/media": {
+      "get": {
+        "tags": [
+          "Content Delivery"
+        ],
+        "summary": "Get content media",
+        "description": "Returns the first uploaded image for editor review",
+        "operationId": "getContentMedia",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/content-delivery/{id}/media/{mediaIndex}": {
+      "get": {
+        "tags": [
+          "Content Delivery"
+        ],
+        "summary": "Get a content media item",
+        "description": "Returns an uploaded image by its zero-based index",
+        "operationId": "getContentMedia_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "mediaIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/content-delivery/review/list": {
       "get": {
         "tags": [
           "Content Delivery"
         ],
         "summary": "Get content for review",
-        "description": "Returns content for editor review",
+        "description": "Returns content for editor review. Optional ISO dates filter review items by creation date and published items by publish date.",
         "operationId": "getContentForReview",
         "parameters": [
           {
@@ -5250,6 +5380,24 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
             }
           }
         ],
@@ -5390,11 +5538,20 @@
           "Content Delivery"
         ],
         "summary": "Get categories from database",
-        "description": "Fetch available categories (root or by parent). Optional parent parameter to filter children",
+        "description": "Fetch publisher categories (root or by parent). Specify digitalPropertyId to select the publisher.",
         "operationId": "getCategories",
         "parameters": [
           {
             "name": "parentId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "digitalPropertyId",
             "in": "query",
             "required": false,
             "schema": {
@@ -5803,8 +5960,19 @@
           "City Management"
         ],
         "summary": "Get visible cities",
-        "description": "Returns all visible cities for public use",
+        "description": "Returns visible cities, optionally filtered by digital property",
         "operationId": "getVisibleCities",
+        "parameters": [
+          {
+            "name": "digitalPropertyId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
         "responses": {
           "403": {
             "description": "Forbidden",
@@ -5835,13 +6003,22 @@
           "City Management"
         ],
         "summary": "Get visible cities by region (public)",
-        "description": "Returns visible cities for a region — used for city dropdown on landing page",
+        "description": "Returns visible cities for a region, optionally filtered by digital property",
         "operationId": "getVisibleCitiesByRegion",
         "parameters": [
           {
             "name": "regionId",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "digitalPropertyId",
+            "in": "query",
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -6504,6 +6681,13 @@
               "format": "int64"
             }
           },
+          "digitalPropertyIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
           "visible": {
             "type": "boolean"
           }
@@ -6924,6 +7108,14 @@
             "type": "integer",
             "format": "int64"
           },
+          "billingPeriodStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "billingPeriodEndDate": {
+            "type": "string",
+            "format": "date"
+          },
           "userId": {
             "type": "integer",
             "format": "int64"
@@ -7193,6 +7385,9 @@
             "type": "integer",
             "format": "int64"
           },
+          "userName": {
+            "type": "string"
+          },
           "entitlementGrantId": {
             "type": "integer",
             "format": "int64"
@@ -7215,6 +7410,15 @@
           },
           "hasCoverImage": {
             "type": "boolean"
+          },
+          "mediaUrl": {
+            "type": "string"
+          },
+          "mediaUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "targetRegionId": {
             "type": "integer",
@@ -7266,6 +7470,9 @@
           "reviewedBy": {
             "type": "integer",
             "format": "int64"
+          },
+          "reviewerName": {
+            "type": "string"
           },
           "reviewNotes": {
             "type": "string"
